@@ -1,8 +1,7 @@
 1&1 Computer Driver Documentation
 =================================
 
-`1&1` is one of the World's largest Hosting Providers
-We offer a range of US services, such as: Hosting Solutions, Domains, Websites.
+`1&1` is one of the world's largest hosting providers. We offer a range of services, including hosting solutions, domains, and websites.
 
 The data centers/availability zones are located in:
 
@@ -11,40 +10,39 @@ The data centers/availability zones are located in:
 - United Kingdom or Great Britain and Northern Ireland (GB)
 - Spain (ES)
 
-Instantiating a driver
+Instantiating a Driver
 ----------------------
 
-To instantiate the driver you will need to pass the API key as following
-constructor parameter:
+To instantiate a driver you will need to pass the API key using the following constructor parameter:
 
 * ``key`` - Your 1&1 API Key
 
 You can obtain your API key in the `1&1 Cloud Panel` under Management ->
 Users where an API key will be generated.
 
-With newly generated API Token you can instantiate a driver:
+With a newly-generated API token you can instantiate a driver using:
 
 .. literalinclude:: /examples/compute/oneandone/instantiate_driver.py
    :language: python
 
 
-1&1 implementation of libcloud
+1&1 Implementation of Libcloud
 ------------------------------
 
-1&1 driver implements follwing ``NodeDriver`` functions:
+The 1&1 driver implements the following ``NodeDriver`` functions:
 
 * ``list_sizes`` - Returns a list of ``NodeSize``
 * ``list_locations`` - Returns a list of ``NodeLocation``
-* ``list_images`` - Retruns a list of ``NodeImage``
-* ``get_image`` - Retruns a ``NodeImage``
+* ``list_images`` - Returns a list of ``NodeImage``
+* ``get_image`` - Returns a ``NodeImage``
 * ``create_node`` - Creates a ``Node``
 * ``list_nodes`` - Returns a list of ``Node``
 * ``destroy_node`` - Destroys an existing ``Node``
 * ``reboot_node`` - Reboots a ``Node``
 
-1&1 Extension functions
+1&1 Extension Functions
 -----------------------
-* ``ex_rename_server`` - Allows to change server name and description
+* ``ex_rename_server`` - Allows you to change server name and description
 * ``ex_get_server_hardware`` - Returns server's hardware specification
 * ``ex_modify_server_hardware`` - Updates server hardware
 * ``ex_modify_server_hdd`` - Updates a single server HDD
@@ -58,8 +56,8 @@ With newly generated API Token you can instantiate a driver:
 * ``ex_list_server_ips`` -  Gets all server IP objects
 * ``ex_assign_server_ip`` - Assigns a new IP address to the server
 * ``ex_remove_server_ip`` - Removes an IP address from the server
-* ``ex_get_server_firewall_policies`` - Gets a firewall policy of attached to the server's IP
-* ``ex_remove_server_firewall_policy`` - Removes a firewall policy from server's IP
+* ``ex_get_server_firewall_policies`` - Gets a firewall policy attached to the server's IP address
+* ``ex_remove_server_firewall_policy`` - Removes a firewall policy from  the server's IP address
 * ``ex_add_server_firewall_policy`` - Adds a firewall policy to the server's IP address
 * ``ex_list_monitoring_policies`` - Lists all monitoring policies
 * ``ex_create_monitoring_policy`` - Creates a monitoring policy
@@ -69,15 +67,15 @@ With newly generated API Token you can instantiate a driver:
 * ``ex_get_monitoring_policy_ports`` - Fetches monitoring policy ports
 * ``ex_get_monitoring_policy_port`` - Fetches monitoring policy port
 * ``ex_remove_monitoring_policy_port`` - Removes monitoring policy port
-* ``ex_add_monitoring_policy_ports`` - Add monitoring policy ports
+* ``ex_add_monitoring_policy_ports`` - Adds monitoring policy ports
 * ``ex_get_monitoring_policy_processes`` - Fetches monitoring policy processes
 * ``ex_get_monitoring_policy_process`` - Fetches monitoring policy process
 * ``ex_remove_monitoring_policy_process`` - Removes monitoring policy process
-* ``ex_add_monitoring_policy_processes`` - Add monitoring policy processes
-* ``ex_list_monitoring_policy_servers`` - List all servers that are being monitoried by the policy
+* ``ex_add_monitoring_policy_processes`` - Adds monitoring policy processes
+* ``ex_list_monitoring_policy_servers`` - List all servers that are being monitored by the policy
 * ``ex_add_servers_to_monitoring_policy`` - Adds servers to monitoring policy
 * ``ex_remove_server_from_monitoring_policy`` - Removes a server from monitoring policy
-* ``ex_list_shared_storages`` - List of shared storages
+* ``ex_list_shared_storages`` - Lists shared storages
 * ``ex_get_shared_storage`` - Gets a shared storage
 * ``ex_create_shared_storage`` - Creates a shared storage
 * ``ex_delete_shared_storage`` - Removes a shared storage
@@ -86,7 +84,7 @@ With newly generated API Token you can instantiate a driver:
 * ``ex_detach_server_from_shared_storage`` - Detaches a server from shared storage
 * ``ex_list_public_ips`` - Lists all public IP addresses
 * ``ex_create_public_ip`` - Creates a public IP
-* ``ex_get_public_ip`` - Gets a Public IP
+* ``ex_get_public_ip`` - Gets a public IP
 * ``ex_delete_public_ip`` - Deletes a public IP
 * ``ex_update_public_ip`` - Updates a Public IP
 * ``ex_list_private_networks`` - Lists all private networks
@@ -94,37 +92,36 @@ With newly generated API Token you can instantiate a driver:
 * ``ex_delete_private_network`` - Deletes a private network
 * ``ex_update_private_network`` - Updates a private network
 * ``ex_list_private_network_servers`` - Lists all private network servers
-* ``ex_add_private_network_server`` - Add servers to private network
+* ``ex_add_private_network_server`` - Adds servers to private network
 * ``ex_remove_server_from_private_network`` - Removes a server from the private network
 
 Create a Node
 -------------
 
-To create a node on 1&1 using libcloud follow this example:
+To create a node on 1&1 using Libcloud, follow this example:
 
 .. literalinclude:: /examples/compute/oneandone/create_node.py
    :language: python
 
-This example will create a 1&1 server using 'S' as a small instance in 'ES'
-(spain) datacenter
+This example will create a 1&1 server using 'S' as a small instance in  the 'ES' (spain) data center.
 
-`create_node` has following parameters:
+`create_node` has the following parameters:
 
 Required parameters:
 
-* ``name`` - Desired node name. Must be unique
-* ``ex_image`` - Image ID retrieved from `list_images`
-* ``ex_fixed_instance_size_id`` - This is an ID of a flavour.
+* ``name`` - Desired node name. Must be unique.
+* ``ex_image`` - Image ID retrieved from `list_images`.
+* ``ex_fixed_instance_size_id`` - This is an ID of a flavor.
 
 Optional parameters:
 
-* ``password`` - Password for the server. If none is provided 1&1 will generate one for you, and return it in the response.
-* ``ex_ip`` - Id of a public IP address which can be created using `ex_create_public_ip`
-* ``ex_ssh_key`` - Private SSH key to be injected into the server
-* ``ex_datacenter`` - Id of desired datacenter where the server will be created
-* ``ex_monitoring_policy_id`` - Id of a monitoring policy which can be created using `ex_create_monitoring_policy`
-* ``ex_firewall_policy_id`` - Id of a firewall policy which can be create using `ex_create_firewall_policy`
-* ``ex_loadbalancer_id`` - Id of a load balancer which can be create using `ex_create_load_balancer`
+* ``password`` - Password for the server. If none is provided, 1&1 will generate one for you, and return it in the response.
+* ``ex_ip`` - ID of a public IP address which can be created using `ex_create_public_ip`.
+* ``ex_ssh_key`` - Private SSH key to be injected into the server.
+* ``ex_datacenter`` - ID of desired data center where the server will be created.
+* ``ex_monitoring_policy_id`` - Id of a monitoring policy which can be created using `ex_create_monitoring_policy`.
+* ``ex_firewall_policy_id`` - Id of a firewall policy which can be create using `ex_create_firewall_policy`.
+* ``ex_loadbalancer_id`` - Id of a load balancer which can be create using `ex_create_load_balancer`.
 * ``ex_description`` - Description for the server.
 * ``ex_power_on`` - A boolean indicating whether a server will be `POWERED_ON` or `POWERED_OFF` when provisioned.
 
@@ -132,23 +129,23 @@ Optional parameters:
 Create a Firewall Policy
 ------------------------
 
-To create a firewall policy follow this example:
+To create a firewall policy, follow this example:
 
 .. literalinclude:: /examples/compute/oneandone/create_firewall_policy.py
    :language: python
 
 This example will create a firewall policy with a TCP rule allowing access on port 80.
 
-`ex_create_firewall_policy` has following parameters:
+`ex_create_firewall_policy` has the following parameters:
 
 Required parameters:
 
 * ``name`` - Desired name for the firewall policy. Must be unique.
 * ``rules`` - ``list`` of ``dict``:
-  * ``protocol`` - One of the follwing protocols can be set TCP, UDP, TCP/UDP, ICMP, IPSEC
-  * ``port_from`` - Port range start. Must be between 1 and 65535
-  * ``port_to`` - Port range end. Must be between 1 and 65535
-  * ``source`` - Source IP address
+  * ``protocol`` - One of the follwing protocols can be set TCP, UDP, TCP/UDP, ICMP, IPSEC.
+  * ``port_from`` - Port range start. Must be between 1 and 65535.
+  * ``port_to`` - Port range end. Must be between 1 and 65535.
+  * ``source`` - Source IP address.
 
 
 Optional parameters:
@@ -159,19 +156,19 @@ Optional parameters:
 Create a Monitoring Policy
 --------------------------
 
-To create a monitoring policy follow this example:
+To create a monitoring policy, follow this example:
 
 .. literalinclude:: /examples/compute/oneandone/create_monitoring_policy.py
    :language: python
 
-`ex_create_monitoring_policy` has following parameters:
+`ex_create_monitoring_policy` has the following parameters:
 
 Required parameters:
 
 * ``name`` - Desired name for the monitoring policy. Must be unique.
 * ``thresholds`` - ``dict`` of thresholds to be monitored. See the example
-* ``ports`` - ``list`` of  ``dict`` defining which ports are to be monitored. See the example
-* ``processes`` - ``list`` of  ``dict`` defining which processes are to be monitored. See the example
+* ``ports`` - ``list`` of  ``dict`` defining which ports are to be monitored. See the example.
+* ``processes`` - ``list`` of  ``dict`` defining which processes are to be monitored. See the example.
 
 Optional parameters:
 
@@ -182,7 +179,7 @@ Optional parameters:
 Create a Shared Storage
 -----------------------
 
-To create a shared storage follow this example
+To create a shared storage, follow this example:
 
 .. literalinclude:: /examples/compute/oneandone/create_shared_storage.py
    :language: python
@@ -190,8 +187,8 @@ To create a shared storage follow this example
 Required parameters:
 
 * ``name`` - ``str`` Desired name for the shared storage. Must be unique.
-* ``size`` - ``int`` Size of the shared storage
-* ``datacenter_id`` - ``str`` 1&1 Datacenter
+* ``size`` - ``int`` Size of the shared storage.
+* ``datacenter_id`` - ``str`` 1&1 data center.
 
 Optional parameters:
 
@@ -201,7 +198,7 @@ Create a Load Balancer
 ----------------------
 
 
-To create a load balancer follow this example
+To create a load balancer, follow this example:
 
   .. literalinclude:: /examples/compute/oneandone/create_load_balancer.py
    :language: python
@@ -227,7 +224,7 @@ Optional parameters:
 Create a Public IP
 ------------------
 
-To create a public IP address follow this example
+To create a public IP address, follow this example:
 
   .. literalinclude:: /examples/compute/oneandone/create_public_ip.py
    :language: python
@@ -245,31 +242,17 @@ Optional parameters:
 Create a Private Network
 ------------------------
 
-To create a private network follow this example:
+To create a private network, follow this example:
 
   .. literalinclude:: /examples/compute/oneandone/create_private_network.py
    :language: python
 
 Required parameters:
 
-* ``name`` - ``str`` name of the public network
+* ``name`` - ``str`` name of the public network.
 
 Optional parameters:
 
 * ``datacenter_id`` - ``str``
 * ``network_address``
 * ``subnet_mask``
-
-
-
-
-
-
-
-
-
-
-
-
-
-
