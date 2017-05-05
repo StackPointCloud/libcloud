@@ -26,6 +26,7 @@ from libcloud.compute.providers import Provider
 from libcloud.common.base import ConnectionUserAndKey, JsonResponse
 from libcloud.compute.base import Node, NodeDriver, NodeLocation, NodeSize
 from libcloud.compute.base import NodeImage, StorageVolume, VolumeSnapshot
+from libcloud.compute.base import NodeAuthPassword, NodeAuthSSHKey
 from libcloud.compute.base import UuidMixin
 from libcloud.compute.types import NodeState
 from libcloud.common.types import LibcloudError, MalformedResponseError
@@ -670,10 +671,11 @@ class ProfitBricksNodeDriver(NodeDriver):
         :type   ex_disk: ``int``
 
         :param  ex_password: The password for the volume.
-        :type   ex_password: ``str``
+        :type   ex_password: :class:`NodeAuthPassword` or ``str``
 
         :param  ex_ssh_keys: Optional SSH keys for the volume.
-        :type   ex_ssh_keys: ``list`` of ``str``
+        :type   ex_ssh_keys: ``list`` of :class:`NodeAuthSSHKey` or
+                            ``list`` of ``str``
 
         :param  ex_bus_type: Volume bus type (VIRTIO, IDE).
         :type   ex_bus_type: ``str``
@@ -736,7 +738,7 @@ class ProfitBricksNodeDriver(NodeDriver):
 
         '''
         If passing in an image we need
-        to enfore a password or ssh keys.
+        to enforce a password or ssh keys.
         '''
         if not volume and image is not None:
             if ex_password is None and ex_ssh_keys is None:
@@ -807,10 +809,18 @@ class ProfitBricksNodeDriver(NodeDriver):
             }
 
             if ex_password is not None:
-                new_volume['properties']['imagePassword'] = ex_password
+                if isinstance(ex_password, NodeAuthPassword):
+                    new_volume['properties']['imagePassword'] = \
+                        ex_password.password
+                else:
+                    new_volume['properties']['imagePassword'] = ex_password
 
             if ex_ssh_keys is not None:
-                new_volume['properties']['sshKeys'] = ex_ssh_keys
+                if isinstance(ex_ssh_keys[0], NodeAuthSSHKey):
+                    new_volume['properties']['sshKeys'] = \
+                        [ssh_key.pubkey for ssh_key in ex_ssh_keys]
+                else:
+                    new_volume['properties']['sshKeys'] = ex_ssh_keys
 
             body['entities']['volumes']['items'].append(new_volume)
 
@@ -1040,10 +1050,11 @@ class ProfitBricksNodeDriver(NodeDriver):
         :type   ex_bus_type: ``str``
 
         :param  ex_ssh_keys: Optional SSH keys.
-        :type   ex_ssh_keys: ``dict``
+        :type   ex_ssh_keys: ``list`` of :class:`NodeAuthSSHKey` or
+                            ``list`` of ``str``
 
         :param  ex_password: Optional password for root.
-        :type   ex_password: ``str``
+        :type   ex_password: :class:`NodeAuthPassword` or ``str``
 
         :param  ex_availability_zone: Volume Availability Zone.
         :type   ex_availability_zone: ``str``
@@ -1096,9 +1107,16 @@ class ProfitBricksNodeDriver(NodeDriver):
         if ex_bus_type is not None:
             body['properties']['bus'] = ex_bus_type
         if ex_ssh_keys is not None:
-            body['properties']['sshKeys'] = ex_ssh_keys
+            if isinstance(ex_ssh_keys[0], NodeAuthSSHKey):
+                body['properties']['sshKeys'] = \
+                    [ssh_key.pubkey for ssh_key in ex_ssh_keys]
+            else:
+                body['properties']['sshKeys'] = ex_ssh_keys
         if ex_password is not None:
-            body['properties']['imagePassword'] = ex_password
+            if isinstance(ex_password, NodeAuthPassword):
+                body['properties']['imagePassword'] = ex_password.password
+            else:
+                body['properties']['imagePassword'] = ex_password
         if ex_availability_zone is not None:
             body['properties']['availabilityZone'] = ex_availability_zone
 
@@ -1696,37 +1714,37 @@ class ProfitBricksNodeDriver(NodeDriver):
             body['description'] = description
 
         if licence_type is not None:
-            body['licence_type'] = licence_type
+            body['licenceType'] = licence_type
 
         if cpu_hot_plug is not None:
-            body['cpu_hot_plug'] = cpu_hot_plug
+            body['cpuHotPlug'] = cpu_hot_plug
 
         if cpu_hot_unplug is not None:
-            body['cpu_hot_unplug'] = cpu_hot_unplug
+            body['cpuHotUnplug'] = cpu_hot_unplug
 
         if ram_hot_plug is not None:
-            body['ram_hot_plug'] = ram_hot_plug
+            body['ramHotPlug'] = ram_hot_plug
 
         if ram_hot_unplug is not None:
-            body['ram_hot_unplug'] = ram_hot_unplug
+            body['ramHotUnplug'] = ram_hot_unplug
 
         if nic_hot_plug is not None:
-            body['nic_hot_plug'] = nic_hot_plug
+            body['nicHotPlug'] = nic_hot_plug
 
         if nic_hot_unplug is not None:
-            body['nic_hot_unplug'] = nic_hot_unplug
+            body['nicHotUnplug'] = nic_hot_unplug
 
         if disc_virtio_hot_plug is not None:
-            body['disc_virtio_hot_plug'] = disc_virtio_hot_plug
+            body['discVirtioHotPlug'] = disc_virtio_hot_plug
 
         if disc_virtio_hot_unplug is not None:
-            body['disc_virtio_hot_unplug'] = disc_virtio_hot_unplug
+            body['discVirtioHotUnplug'] = disc_virtio_hot_unplug
 
         if disc_scsi_hot_plug is not None:
-            body['disc_scsi_hot_plug'] = disc_scsi_hot_plug
+            body['discScsiHotPlug'] = disc_scsi_hot_plug
 
         if disc_scsi_hot_unplug is not None:
-            body['disc_scsi_hot_unplug'] = disc_scsi_hot_unplug
+            body['discScsiHotUnplug'] = disc_scsi_hot_unplug
 
         response = self.connection.request(
             action=action,
@@ -1766,7 +1784,7 @@ class ProfitBricksNodeDriver(NodeDriver):
         if ex_href is None:
             if ex_location_id is None:
                 raise ValueError(
-                    'The loctation ID is required.'
+                    'The location ID is required.'
                 )
             else:
                 use_full_url = False
@@ -2347,7 +2365,7 @@ class ProfitBricksNodeDriver(NodeDriver):
         - a datacenter if one is specified
         - all datacenters if none specified
 
-        :param  datacenter: The DC you are renaming.
+        :param  datacenter: The parent DC for the LAN.
         :type   datacenter: :class:`Datacenter`
 
         :return:    ``list`` of class ``ProfitBricksLan``
@@ -2382,7 +2400,7 @@ class ProfitBricksNodeDriver(NodeDriver):
         """
         Create and attach a Lan to a data center.
 
-        :param  datacenter: The DC you are renaming.
+        :param  datacenter: The parent DC for the LAN..
         :type   datacenter: :class:`Datacenter`
 
         :param  is_public: True if the Lan is to have internet access.
@@ -2908,7 +2926,7 @@ class ProfitBricksNodeDriver(NodeDriver):
         """
         Create and attach a load balancer to a data center.
 
-        :param  datacenter: The DC you are renaming.
+        :param  datacenter: The parent DC for the load balancer.
         :type   datacenter: :class:`Datacenter`
 
         :param  name: Load balancer name.

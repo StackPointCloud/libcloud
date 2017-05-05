@@ -20,6 +20,7 @@ from libcloud.test import MockHttp
 from libcloud.test.file_fixtures import ComputeFileFixtures
 from libcloud.compute.types import Provider
 from libcloud.compute.types import NodeState
+from libcloud.compute.base import NodeAuthSSHKey
 from libcloud.compute.providers import get_driver
 from libcloud.test import unittest
 from libcloud.test.secrets import PROFIT_BRICKS_PARAMS
@@ -946,12 +947,14 @@ class ProfitBricksTests(unittest.TestCase):
                 size=sizes[1],
                 datacenter=datacenter
             )
+        ssh_key = NodeAuthSSHKey('ssh-rsa dummy key')
 
         node = self.driver.create_node(
             name='Test',
             image=image,
             size=sizes[1],
             ex_password='dummy1234',
+            ex_ssh_keys=[ssh_key],
             datacenter=datacenter
         )
 
@@ -1523,6 +1526,25 @@ class ProfitBricksTests(unittest.TestCase):
         )
 
         self.assertTrue(created)
+
+    def test_create_volume_failure(self):
+
+        datacenter = self.driver.ex_describe_datacenter(
+            ex_href=(
+                '/cloudapi/v3/datacenters/'
+                'dc-1'
+            )
+        )
+        with self.assertRaises(ValueError):
+            'Raises value error if no image'
+            self.driver.create_volume(
+                size=30,
+                name='Test volume1',
+                ex_type='HDD',
+                ex_bus_type='IDE',
+                ex_datacenter=datacenter,
+                image=None
+            )
 
     def test_destroy_volume(self):
 
