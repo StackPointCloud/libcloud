@@ -123,6 +123,7 @@ class OneAndOneNodeDriver(NodeDriver):
         'CONFIGURING': NodeState.RECONFIGURING,
         'REMOVING': NodeState.UNKNOWN,
         'DEPLOYING': NodeState.STARTING,
+        'ON_RECOVERY': NodeState.RECONFIGURING,
     }
 
     """
@@ -179,6 +180,25 @@ class OneAndOneNodeDriver(NodeDriver):
         )
         return self._to_image(response.object)
 
+    def list_recovery_images(self):
+        """
+        :return: ``list`` of :class: `NodeImage`
+        :rtype: ``list``
+        """
+        response = self.connection.request(
+            action='/recovery_appliances',
+            method='GET'
+        )
+
+        return self._to_recovery_images(response.object)
+
+    def get_recovery_image(self, image_id):
+        response = self.connection.request(
+            action='/recovery_appliances/%s' % image_id,
+            method='GET'
+        )
+        return self._to_recovery_image(response.object)
+
     """
     Node functions
     """
@@ -187,6 +207,8 @@ class OneAndOneNodeDriver(NodeDriver):
                     name,
                     image,
                     ex_fixed_instance_size_id,
+                    ex_server_type=None,
+                    ex_baremetal_model_id=None,
                     location=None,
                     auth=None,
                     ex_ip=None,
@@ -244,6 +266,14 @@ class OneAndOneNodeDriver(NodeDriver):
             },
         }
 
+        if ex_server_type is not None:
+            body['server_type'] = ex_server_type
+        else:
+            body['server_type'] = 'cloud'
+
+        if ex_baremetal_model_id is not None:
+            body['baremetal_model_id'] = ex_baremetal_model_id
+
         if location is not None:
             body['datacenter_id'] = location.id
         if ex_power_on is not None:
@@ -286,6 +316,20 @@ class OneAndOneNodeDriver(NodeDriver):
         """
         response = self.connection.request(
             action='servers',
+            method='GET'
+        )
+
+        return self._to_nodes(response.object)
+
+    def list_baremetal_models(self):
+        """
+        List all baremetal models.
+
+        :return: List of baremetal models
+        :rtype: ``dict``
+        """
+        response = self.connection.request(
+            action='/servers/baremetal_models',
             method='GET'
         )
 
@@ -553,6 +597,24 @@ class OneAndOneNodeDriver(NodeDriver):
         )
 
         return self._to_node(response.object)
+
+    def ex_get_baremetal_model(self, model_id):
+        """
+        Gets information about a specific baremetal model
+
+        :param model_id: Id of the baremetal model to be retrieved
+        :type: ``str``
+
+        :return:    Baremetal model
+        :rtype:     :class: ``dict``
+        """
+
+        response = self.connection.request(
+            action='/servers/baremetal_models/%s' % (model_id),
+            method='GET'
+        )
+
+        return response.object
 
     def ex_shutdown_server(self, server_id, method='SOFTWARE'):
         """
@@ -2082,6 +2144,22 @@ class OneAndOneNodeDriver(NodeDriver):
             'licenses': data['licenses'],
             'version': data['version'],
             'categories': data['categories']
+        }
+        return NodeImage(id=data['id'], name=data['name'], driver=self,
+                         extra=extra)
+
+    def _to_recovery_images(self, object):
+        images = [image for image in object]
+
+        return [self._to_recovery_image(image) for image in images]
+
+    def _to_recovery_image(self, data):
+        extra = {
+            'available_datacenters': data['available_datacenters'],
+            'os_family': data['os_family'],
+            'os': data['os'],
+            'os_version': data['os_version'],
+            'os_architecture': data['os_architecture']
         }
         return NodeImage(id=data['id'], name=data['name'], driver=self,
                          extra=extra)
