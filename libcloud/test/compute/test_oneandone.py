@@ -662,6 +662,120 @@ class OneAndOneTests(unittest.TestCase):
             ex_remove_server_from_monitoring_policy('pol_1', 'serv_1')
         self.assertNotEqual(policy, None)
 
+    def test_ex_list_block_storages(self):
+        b_storages = self.driver.ex_list_block_storages()
+        self.assertEquals(len(b_storages), 3)
+
+    def test_ex_get_block_storage(self):
+        b_storage = self.driver.ex_get_block_storage('block_storage_id')
+
+        self.assertNotEqual(b_storage, None)
+        self.assertEqual(b_storage['id'], '6AD2F180B7B666539EF75A02FE227084')
+        self.assertEqual(b_storage['size'], 200)
+        self.assertEqual(b_storage['state'], 'ACTIVE')
+        self.assertEqual(b_storage['description'],
+                         'My block storage for containers')
+        self.assertEqual(b_storage['datacenter']['id'],
+                         'D0F6D8C8ED29D3036F94C27BBB7BAD36')
+        self.assertEqual(b_storage['datacenter']['location'], 'USA')
+        self.assertEqual(b_storage['datacenter']['country_code'], 'US')
+        self.assertEqual(b_storage['name'], 'My block storage 1')
+        self.assertEqual(b_storage['creation_date'], '2015-05-06T08:33:25+00:00')
+        self.assertEqual(b_storage['server']['id'],
+                         '638ED28205B1AFD7ADEF569C725DD85F')
+        self.assertEqual(b_storage['server']['name'], 'My server 1')
+
+    def test_ex_create_block_storage(self):
+        b_storage = self.driver \
+            .ex_create_block_storage(name='name', size=200,
+                                     datacenter_id='D0F6D8C8ED29D3036F94C27BBB7BAD36',
+                                     description='My block storage description',
+                                     server_id=None)
+
+        self.assertNotEqual(b_storage, None)
+
+    def test_ex_update_block_storage(self):
+        b_storage = self.driver \
+            .ex_update_block_storage('block_storage_id',
+                                     'My block storage 4',
+                                     'My block storage description')
+
+        self.assertNotEqual(b_storage, None)
+        self.assertEqual(b_storage['name'], 'My block storage 4')
+        self.assertEqual(b_storage['description'], 'My block storage description')
+
+    def test_ex_delete_block_storage(self):
+        b_storage = self.driver.\
+            ex_delete_block_storage('block_storage_id')
+
+        self.assertNotEqual(b_storage, None)
+        self.assertEqual(b_storage['state'], 'REMOVING')
+
+    def test_ex_attach_block_storage_to_server(self):
+        b_storage = self.driver.ex_attach_block_storage_to_server(
+            storage_id='block_storage_id',
+            server_id='638ED28205B1AFD7ADEF569C725DD85F')
+
+        self.assertNotEqual(b_storage, None)
+        self.assertEqual(b_storage['server']['id'],
+                         '638ED28205B1AFD7ADEF569C725DD85F')
+        self.assertEqual(b_storage['server']['name'], 'My server 1')
+
+    def test_ex_detach_block_storage_from_server(self):
+        b_storage = self.driver.ex_detach_block_storage_from_server(
+            'block_storage_id'
+        )
+
+        self.assertNotEqual(b_storage, None)
+        self.assertEqual(b_storage['state'], 'CONFIGURING')
+
+    def test_ex_list_ssh_keys(self):
+        ssh_keys = self.driver.ex_list_ssh_keys()
+        self.assertEquals(len(ssh_keys), 2)
+
+    def test_ex_get_ssh_key(self):
+        ssh_key = self.driver.ex_get_ssh_key('ssh_key_id')
+
+        self.assertNotEqual(ssh_key, None)
+        self.assertEqual(ssh_key['id'], '39AA65F5D5B02FA02D58173094EBAF95')
+        self.assertEqual(ssh_key['name'], 'My SSH key 1')
+        self.assertEqual(ssh_key['description'], 'My SSH key description')
+        self.assertEqual(ssh_key['state'], 'ACTIVE')
+        self.assertEqual(ssh_key['servers'][0]['id'],
+                         'D0F6D8C8ED29D3036F94C27BBB789536')
+        self.assertEqual(ssh_key['servers'][0]['name'], 'Server 1')
+        self.assertEqual(ssh_key['servers'][1]['id'],
+                         'E0F6D8C8ED29D3036F94C27BBB789537')
+        self.assertEqual(ssh_key['servers'][1]['name'], 'Server 2')
+        self.assertEqual(ssh_key['md5'], '5df9f63916ebf8528697b629022993e8')
+        self.assertEqual(ssh_key['creation_date'], '30-06-2015T 14:52:35+00.00')
+
+    def test_ex_create_ssh_key(self):
+        ssh_key = self.driver \
+            .ex_create_ssh_key(name='My SSH key 1',
+                               description='My SSH key description')
+
+        self.assertNotEqual(ssh_key, None)
+        self.assertEqual(ssh_key['md5'], '5df9f63916ebf8528697b629022993e8')
+
+    def test_ex_update_ssh_key(self):
+        ssh_key = self.driver \
+            .ex_update_ssh_key('ssh_key_id',
+                               'My SSH key 1',
+                               'My SSH key description updated')
+
+        self.assertNotEqual(ssh_key, None)
+        self.assertEqual(ssh_key['name'], 'My SSH key 1')
+        self.assertEqual(ssh_key['description'],
+                         'My SSH key description updated')
+
+    def test_ex_delete_ssh_key(self):
+        ssh_key = self.driver. \
+            ex_delete_ssh_key('ssh_key_id')
+
+        self.assertNotEqual(ssh_key, None)
+        self.assertEqual(ssh_key['state'], 'DELETING')
+
 
 class OneAndOneMockHttp(MockHttp):
     fixtures = ComputeFileFixtures('oneandone')
@@ -1275,6 +1389,122 @@ class OneAndOneMockHttp(MockHttp):
             {},
             httplib.responses[httplib.OK]
         )
+
+    def _v1_block_storages(
+        self, method, url, body, header
+    ):
+        if method == 'POST':
+            body = self.fixtures.load('create_block_storage.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+        if method == 'GET':
+            body = self.fixtures.load('list_block_storages.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+
+    def _v1_block_storages_block_storage_id(
+        self, method, url, body, header
+    ):
+        if method == 'GET':
+            body = self.fixtures.load('describe_block_storage.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+        if method == 'PUT':
+            body = self.fixtures.load('modify_block_storage.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+        if method == 'DELETE':
+            body = self.fixtures.load('delete_block_storage.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+
+    def _v1_block_storages_block_storage_id_server(
+        self, method, url, body, header
+    ):
+        if method == 'POST':
+            body = self.fixtures.load('attach_block_storage.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+        if method == 'DELETE':
+            body = self.fixtures.load('detach_block_storage.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+
+    def _v1_ssh_keys(
+        self, method, url, body, header
+    ):
+        if method == 'POST':
+            body = self.fixtures.load('create_ssh_key.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+        if method == 'GET':
+            body = self.fixtures.load('list_ssh_keys.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+
+    def _v1_ssh_keys_ssh_key_id(
+        self, method, url, body, header
+    ):
+        if method == 'GET':
+            body = self.fixtures.load('describe_ssh_key.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+        if method == 'PUT':
+            body = self.fixtures.load('modify_ssh_key.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
+        if method == 'DELETE':
+            body = self.fixtures.load('delete_ssh_key.json')
+            return (
+                httplib.OK,
+                body,
+                {},
+                httplib.responses[httplib.OK]
+            )
 
 
 if __name__ == '__main__':

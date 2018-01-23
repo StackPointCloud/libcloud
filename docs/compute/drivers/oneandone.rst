@@ -133,6 +133,24 @@ Firewall Policy Functions
 * ``ex_get_firewall_policy`` - Gets a firewall policy
 * ``ex_delete_firewall_policy`` - Deletes a firewall policy
 
+Block Storage Functions
+------------------------
+* ``ex_list_block_storages`` - Lists block storages
+* ``ex_get_block_storage`` - Gets a block storage
+* ``ex_create_block_storage`` - Creates a block storage
+* ``ex_update_block_storage`` - Updates a block storage
+* ``ex_delete_block_storage`` - Removes a block storage
+* ``ex_attach_block_storage_to_server`` - Attaches a block storage to a server
+* ``ex_detach_block_storage_from_server`` - Detaches a block storage from server
+
+SSH Key Functions
+-------------------
+* ``ex_list_ssh_keys`` - Lists all your SSH keys
+* ``ex_create_ssh_key`` - Creates an SSH key
+* ``ex_get_ssh_key`` - Gets an SSH key
+* ``ex_delete_ssh_key`` - Deletes an SSH key
+* ``ex_update_ssh_key`` - Updates an SSH key
+
 Create a Node
 -------------
 
@@ -293,3 +311,42 @@ Optional parameters:
 * ``datacenter_id`` - ``str``
 * ``network_address``
 * ``subnet_mask``
+
+
+Create a Block Storage
+----------------------
+
+To create a block storage, follow this example:
+
+.. literalinclude:: /examples/compute/oneandone/create_block_storage.py
+   :language: python
+
+Required parameters:
+
+* ``name`` - ``str`` Desired name for the block storage. Must be unique.
+* ``size`` - ``int`` Size of the block storage.
+
+Optional parameters:
+
+* ``description`` - Description of the block storage.
+* ``datacenter_id`` - ID of the datacenter where the shared storage will be created.
+* ``server_id`` - ID of the server that the block storage will be attached to.
+
+
+Create an SSH Key
+-----------------
+
+To create an SSH key, follow this example:
+
+.. literalinclude:: /examples/compute/oneandone/create_ssh_key.py
+   :language: python
+
+Required parameters:
+
+* ``name`` - ``str`` Desired name for the SSH key.
+
+Optional parameters:
+
+* ``description`` - Description of the SSH key.
+* ``public_key`` - Public key to import. If not given, new SSH key pair
+                   will be created and the private key is returned in the response.

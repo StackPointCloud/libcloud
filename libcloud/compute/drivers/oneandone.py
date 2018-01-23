@@ -194,7 +194,8 @@ class OneAndOneNodeDriver(NodeDriver):
                     ex_firewall_policy_id=None,
                     ex_loadbalancer_id=None,
                     ex_description=None,
-                    ex_power_on=None):
+                    ex_power_on=None,
+                    ex_public_key=None):
         """
         Creates a node.
 
@@ -232,6 +233,10 @@ class OneAndOneNodeDriver(NodeDriver):
         :param ex_power_on:
         :type ex_power_on: `bool`
 
+        :param ex_public_key: List of SSH Key IDs
+                              to be copied in the server.
+        :type ex_public_key: `array`
+
         :return:    Instance of class ``Node``
         :rtype:     :class:`Node`
         """
@@ -268,6 +273,9 @@ class OneAndOneNodeDriver(NodeDriver):
                 body['rsa_key'] = auth.pubkey
         if ex_ip is not None:
             body['ip_id'] = ex_ip
+
+        if ex_public_key is not None:
+            body['public_key'] = ex_public_key
 
         response = self.connection.request(
             action='servers',
@@ -2054,6 +2062,300 @@ class OneAndOneNodeDriver(NodeDriver):
             action='monitoring_policies/%s/servers/%s'
                    % (policy_id, server_id),
             method='DELETE'
+        )
+
+        return response.object
+
+    """
+    Block storage operations
+    """
+
+    def ex_list_block_storages(self):
+        """
+        Lists block storages
+
+        :return: Array of block storages
+        :rtype: ``list`` of ``dict``
+        """
+        response = self.connection.request(
+            action='block_storages',
+            method='GET'
+        )
+
+        return response.object
+
+    def ex_get_block_storage(self, storage_id):
+        """
+        Gets a block storage
+
+        :param storage_id: ID of the block storage
+        :type storage_id: ``str``
+
+        :return: Instance of block storage
+        :rtype: ``dict``
+        """
+        response = self.connection.request(
+            action='block_storages/%s' % (storage_id),
+            method='GET'
+        )
+
+        return response.object
+
+    def ex_create_block_storage(self, name, size, datacenter_id=None,
+                                description=None, server_id=None):
+        """
+        Creates a block storage
+
+        :param name: Name of the block storage
+        :type name: ``str``
+
+        :param size: Size of the block storage
+        :type size: ``str``
+
+        :param description: Block storage description
+        :type description: ``str``
+
+        :param datacenter_id: Id of the datacenter where storage
+                              should be created
+        :type datacenter_id: ``str``
+
+        :param server_id: Id of the server to which the storage
+                          should be attached to
+        :type server_id: ``str``
+
+        :return: Instance of block storage
+        :rtype: ``dict``
+        """
+
+        body = {
+            'name': name,
+            'size': size
+        }
+
+        if description is not None:
+            body['description'] = description
+
+        if datacenter_id is not None:
+            body['datacenter_id'] = datacenter_id
+
+        if server_id is not None:
+            body['server_id'] = server_id
+
+        response = self.connection.request(
+            action='block_storages',
+            data=body,
+            method='POST'
+        )
+
+        return response.object
+
+    def ex_update_block_storage(self, storage_id,
+                                name=None, description=None):
+        """
+        Updates a block storage
+
+        :param storage_id: Id of block storage
+        :type storage_id: ``str``
+
+        :param name: Name of the block storage
+        :type name: ``str``
+
+        :param description: Description of the block storage
+        :type description: ``str``
+
+        :return: Instance of the block storage being updated
+        :rtype: ``dict``
+        """
+
+        body = {}
+
+        if name is not None:
+            body['name'] = name
+        if description is not None:
+            body['description'] = description
+
+        response = self.connection.request(
+            action='block_storages/%s' % storage_id,
+            data=body,
+            method='PUT'
+        )
+
+        return response.object
+
+    def ex_delete_block_storage(self, storage_id):
+        """
+        Removes a block storage
+
+        :param storage_id: Id of the block storage
+        :type: ``str``
+
+        :return: Instnace of block storage
+        :rtype: ``list`` of ``dict``
+        """
+        response = self.connection.request(
+            action='block_storages/%s' % storage_id,
+            method='DELETE'
+        )
+
+        return response.object
+
+    def ex_attach_block_storage_to_server(self, storage_id,
+                                          server_id):
+        """
+        Attaches a block storage to a server
+
+        :param storage_id: Id of the block storage
+        :param server_id: Id of the server to which the block
+                          storage will be attached to
+
+        :return: Instance of the block storage being attached
+        :rtype: 'dict'
+        """
+        body = {
+            'server': server_id
+        }
+
+        response = self.connection.request(
+            action='block_storages/%s/server' % storage_id,
+            data=body,
+            method='POST'
+        )
+
+        return response.object
+
+    def ex_detach_block_storage_from_server(self, storage_id):
+        """
+        Detaches a block storage from server
+
+        :param storage_id: Id of the block storage
+        :type: ``str``
+
+        :return: Instance of block storage being detached
+        :rtype: ``dict``
+        """
+        response = self.connection.request(
+            action='block_storages/%s/server' % (storage_id),
+            method='DELETE'
+        )
+
+        return response.object
+
+    """
+    SSH Key operations
+    """
+
+    def ex_list_ssh_keys(self):
+        """
+        Lists all your SSH keys
+
+        :return: Array of ssh keys
+        :rtype: ``list`` of ``dict``
+        """
+        response = self.connection.request(
+            action='ssh_keys',
+            method='GET'
+        )
+
+        return response.object
+
+    def ex_create_ssh_key(self, name, description=None, public_key=None):
+        """
+        Creates an SSH key
+
+        :param name: SSH Key name
+        :type name: ``str``
+
+        :param description: SSH Key description
+        :type description: ``str``
+
+        :param public_key: Public key to import. If not given, new SSH key
+                           pair will be created and the private key is
+                           returned in the response.
+        :type public_key: ``str``
+
+        :return: Instance of SSH key
+        :rtype: ``dict``
+        """
+        body = {
+            'name': name
+        }
+
+        if description is not None:
+            body['description'] = description
+        if public_key is not None:
+            body['public_key'] = public_key
+
+        response = self.connection.request(
+            action='ssh_keys',
+            data=body,
+            method='POST'
+        )
+
+        return response.object
+
+    def ex_get_ssh_key(self, ssh_key_id):
+        """
+        Gets an SSH key
+
+        :param ssh_key_id: ID of the SSH key
+        :type ssh_key_id: ``str``
+
+        :return: Instance of SSH key
+        :rtype: ``dict``
+        """
+        response = self.connection.request(
+            action='ssh_keys/%s' % ssh_key_id,
+            method='GET'
+        )
+
+        return response.object
+
+    def ex_delete_ssh_key(self, ssh_key_id):
+        """
+        Deletes an SSH key
+
+        :param ssh_key_id: ID of the SSH key
+        :type ssh_key_id: ``str``
+
+        :return: Instance of SSH key
+        :rtype: ``dict``
+        """
+        response = self.connection.request(
+            action='ssh_keys/%s' % ssh_key_id,
+            method='DELETE'
+        )
+
+        return response.object
+
+    def ex_update_ssh_key(self, ssh_key_id,
+                          name=None, description=None):
+        """
+        Updates an SSH key
+
+        :param ssh_key_id: ID of the SSH key
+        :type ssh_key_id: ``str``
+
+        :param name: SSH Key name
+        :type name: ``str``
+
+        :param description: SSH Key description
+        :type description: ``str``
+
+        :return: Instance of SSH key
+        :rtype: ``dict``
+        """
+
+        body = {}
+
+        if name is not None:
+            body['name'] = name
+        if description is not None:
+            body['description'] = description
+
+        response = self.connection.request(
+            action='ssh_keys/%s' % ssh_key_id,
+            data=body,
+            method='PUT'
         )
 
         return response.object
